@@ -1,0 +1,25 @@
+{
+    "Lua.diagnostics.globals": [
+        "love",
+        "world",
+        "objects",
+        "deck",
+        "shuffledDeck",
+        "spriteWidth",
+        "spriteHeight",
+        "selectedX",
+        "selectedY",
+        "xCardOffset",
+        "yCardOffset",
+        "columnIndex",
+        "rowIndex",
+        "checkCurrentCardHover",
+        "hoverMouseX",
+        "hoverMouseY",
+        "selectedCards",
+        "compareMatch",
+        "compareVector",
+        "getSelectedCard",
+        "isCorrectSelection"
+    ]
+}
