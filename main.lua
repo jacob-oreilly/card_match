@@ -1,10 +1,13 @@
 function love.load()
-    love.window.setMode(800, 600, {resizable=true, vsync=0, minwidth=400, minheight=300})
+    love.window.setMode(800, 600, { resizable = true, vsync = 0, minwidth = 400, minheight = 300 })
     love.graphics.setBackgroundColor(1, 1, 1)
+    cardDisplayDuration = 2
+    timer = 0
 
     deck = {}
     deck.sprites = {}
     deck.spriteSheet = love.graphics.newImage("assets/match_cards.png")
+    deck.card_cover = love.graphics.newImage("assets/card_cover.png")
     shuffledDeck = {}
     selectedCards = {}
     spriteWidth = 64
@@ -12,7 +15,7 @@ function love.load()
     xCardOffset = 1.3
     yCardOffset = 1.2
     isCorrectSelection = false
-    
+
 
     -- Example for a row of 4 sprites
     for i = 0, 4 do
@@ -25,12 +28,13 @@ function love.load()
         end
     end
 
-    
+
     local rowCount = 0
     local colCount = 1
     for i = 1, #deck do
         local randIndex = love.math.random(#deck)
-        table.insert(shuffledDeck, {task = deck[randIndex].task, card_id = deck[randIndex].card_id, index = i, vecPos = {colCount, rowCount}})
+        table.insert(shuffledDeck,
+            { task = deck[randIndex].task, card_id = deck[randIndex].card_id, index = i, vecPos = { colCount, rowCount }, inPlay = true })
         table.remove(deck, randIndex)
 
         --sets column index back to 1 and increases the row index for the new row.
@@ -44,7 +48,7 @@ function love.load()
     for index, card in ipairs(deck) do
         print('task: ' .. card.task .. ', card_id: ' .. card.card_id)
     end
-    print("Deck Count: "..#deck)
+    print("Deck Count: " .. #deck)
     print('Total number of cards in deck: ' .. #deck)
 end
 
@@ -55,7 +59,7 @@ function love.draw()
     rowIndex = 0
     for cardIndex, card in ipairs(shuffledDeck) do
         -- print("Card_id: "..card.card_id)
-        
+
         if columnIndex == 4 then
             rowIndex = rowIndex + 1
             columnIndex = 0
@@ -63,19 +67,28 @@ function love.draw()
         xPosition = (columnIndex) * 64 * xCardOffset
         yPosition = (rowIndex) * 98 * yCardOffset
 
-       
+
         love.graphics.setColor(1, 1, 1)
-        love.graphics.draw(deck.spriteSheet, deck.sprites[card.card_id],  xPosition, yPosition)
+        --If None selected and none right we display card_cover
+        if card.inPlay then
+            love.graphics.draw(deck.card_cover, xPosition, yPosition)
+        else
+            love.graphics.draw(deck.spriteSheet, deck.sprites[card.card_id], xPosition, yPosition)
+        end
+        --If one or two cards are selected we display the match_card.
+        --If match cards are correct we keep displaying throughout the rest of the game
+        --If match cards are incorrect. We set a timer for 5 seconds and then display card_cover
+        -- love.graphics.draw(deck.spriteSheet, deck.sprites[card.card_id],  xPosition, yPosition)
         columnIndex = columnIndex + 1
 
         if hoverMouseX == columnIndex and hoverMouseY == rowIndex then
             love.graphics.setColor(0, 0, 0)
-            love.graphics.print("mouse over: "..card.task.." with card_id: "..card.card_id, 350, 0)
-            love.graphics.print('hoverMouseX: '..hoverMouseX..' hoverMouseY: '..hoverMouseY, 350, 15)
-            love.graphics.print('columnIndex: '..columnIndex..' rowIndex: '..rowIndex, 350, 35)
+            love.graphics.print("mouse over: " .. card.task .. " with card_id: " .. card.card_id, 350, 0)
+            love.graphics.print('hoverMouseX: ' .. hoverMouseX .. ' hoverMouseY: ' .. hoverMouseY, 350, 15)
+            love.graphics.print('columnIndex: ' .. columnIndex .. ' rowIndex: ' .. rowIndex, 350, 35)
         end
-        
-        
+
+
         -- print("-----------------------")
         -- print("card: "..card.task)
         -- print("xPosition: "..xPosition)
@@ -97,33 +110,53 @@ end
 function love.update(dt)
     hoverMouseX = math.floor(love.mouse.getX() / (spriteWidth * xCardOffset)) + 1
     hoverMouseY = math.floor(love.mouse.getY() / (spriteHeight * yCardOffset))
-    
+
+    if selectedCards ~= nil and #selectedCards == 2 then
+        if isCorrectSelection then
+            selectedCards[1].inPlay = false
+            selectedCards[2].inPlay = false
+            selectedCards = {}
+        else
+            timer = timer + dt
+            if timer >= cardDisplayDuration then
+                selectedCards[1].inPlay = true
+                selectedCards[2].inPlay = true
+                selectedCards = {}
+                timer = 0
+            end
+        end
+    end
 end
 
 function love.mousereleased(mouseX, mouseY)
-    selectedX = math.floor(mouseX / (spriteWidth * xCardOffset)) + 1
-    selectedY = math.floor(mouseY / (spriteHeight * yCardOffset))
-    local selectedVector = {selectedX, selectedY}
-    local selectedCard = getSelectedCard(selectedVector)
-    if selectedCard ~= nil then
-        table.insert(selectedCards, selectedCard)
-        print(selectedCard.task)
+    if timer == 0 then
+        selectedX = math.floor(mouseX / (spriteWidth * xCardOffset)) + 1
+        selectedY = math.floor(mouseY / (spriteHeight * yCardOffset))
+        local selectedVector = { selectedX, selectedY }
+        local selectedCard = getSelectedCard(selectedVector)
+        if selectedCard ~= nil then
+            table.insert(selectedCards, selectedCard)
+            selectedCard.inPlay = false
+            print(selectedCard.task)
+        end
+        compareMatch()
     end
-    compareMatch()
 end
 
 function compareMatch()
-    
     if #selectedCards == 2 then
         if selectedCards[1].card_id == selectedCards[2].card_id then
             -- Need to figure out how to remove from deck and not re render the cards in different positions on the screen.
             -- table.remove(shuffledDeck, selectedCards[1].index)
             -- table.remove(shuffledDeck, selectedCards[2].index)
             isCorrectSelection = true
+            -- selectedCards[1].inPlay = false
+            -- selectedCards[2].inPlay = false
         else
             isCorrectSelection = false
+            -- selectedCards[1].inPlay = true
+            -- selectedCards[2].inPlay = true
         end
-        selectedCards = {}
     end
 end
 

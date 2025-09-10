@@ -20,6 +20,9 @@
         "compareMatch",
         "compareVector",
         "getSelectedCard",
-        "isCorrectSelection"
+        "isCorrectSelection",
+        "timer",
+        "cardDisplayDuration",
+        "wrongSelectedCards"
     ]
 }
