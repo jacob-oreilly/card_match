@@ -134,7 +134,7 @@ function love.mousereleased(mouseX, mouseY)
         selectedY = math.floor(mouseY / (spriteHeight * yCardOffset))
         local selectedVector = { selectedX, selectedY }
         local selectedCard = getSelectedCard(selectedVector)
-        if selectedCard ~= nil then
+        if selectedCard ~= nil and selectedCard.inPlay then
             table.insert(selectedCards, selectedCard)
             selectedCard.inPlay = false
             print(selectedCard.task)
