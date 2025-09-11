@@ -23,6 +23,9 @@
         "isCorrectSelection",
         "timer",
         "cardDisplayDuration",
-        "wrongSelectedCards"
+        "wrongSelectedCards",
+        "gameState",
+        "screenWidth",
+        "screenHeight"
     ]
 }

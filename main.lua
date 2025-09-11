@@ -1,6 +1,11 @@
 function love.load()
+    gameState = 1
+
+
     love.window.setMode(800, 600, { resizable = true, vsync = 0, minwidth = 400, minheight = 300 })
     love.graphics.setBackgroundColor(1, 1, 1)
+    screenWidth, screenHeight = love.graphics.getDimensions()
+
     cardDisplayDuration = 2
     timer = 0
 
@@ -17,18 +22,20 @@ function love.load()
     isCorrectSelection = false
 
 
-    -- Example for a row of 4 sprites
+    -- add spritesheet as quad
     for i = 0, 4 do
         deck.sprites[i + 1] = love.graphics.newQuad(i * spriteWidth, 0, spriteWidth, spriteHeight,
             deck.spriteSheet:getWidth(), deck.spriteSheet:getHeight())
     end
+
+    -- Render 4 of each type from the sprite sheet and enter into a table with fields.
     for card_id, task in ipairs({ 'keyboard', 'fly', 'asteroids', 'hockey', 'ghost' }) do
         for index = 1, 4 do
             table.insert(deck, { task = task, index = index, card_id = card_id })
         end
     end
 
-
+    -- Shuffling the deck and insert into new deck.
     local rowCount = 0
     local colCount = 1
     for i = 1, #deck do
@@ -45,11 +52,6 @@ function love.load()
             colCount = colCount + 1
         end
     end
-    for index, card in ipairs(deck) do
-        print('task: ' .. card.task .. ', card_id: ' .. card.card_id)
-    end
-    print("Deck Count: " .. #deck)
-    print('Total number of cards in deck: ' .. #deck)
 end
 
 function love.draw()
@@ -57,54 +59,65 @@ function love.draw()
     local yPosition = 0
     columnIndex = 0
     rowIndex = 0
-    for cardIndex, card in ipairs(shuffledDeck) do
-        -- print("Card_id: "..card.card_id)
 
-        if columnIndex == 4 then
-            rowIndex = rowIndex + 1
-            columnIndex = 0
-        end
-        xPosition = (columnIndex) * 64 * xCardOffset
-        yPosition = (rowIndex) * 98 * yCardOffset
+    if gameState == 1 then
+        love.graphics.setBackgroundColor(95, 148, 228)
+        love.graphics.setColor(0, 0, 0)
+        local menuWidth = 450
+        local menuHeight = 300
+        local buttonWidth = 100
+        local buttonHeight = 65
+        local menuX = (screenWidth / 2) - (menuWidth / 2)
+        local menuY = (screenHeight / 2) - (menuHeight / 2)
+        local buttonX = (buttonWidth / 2) - (menuWidth / 2)
+        local buttonY = (buttonHeight / 2) - (menuHeight / 2)
 
-
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.rectangle("fill", menuX, menuY, menuWidth, menuHeight)
         love.graphics.setColor(1, 1, 1)
-        --If None selected and none right we display card_cover
-        if card.inPlay then
-            love.graphics.draw(deck.card_cover, xPosition, yPosition)
+        love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight)
+    end
+    if gameState == 2 then
+        ---- DRAW GAME ----
+        --Drawing cards to the screen from the shuffledDeck. We are also drawing a
+        --flipped over image in the same place when card hasn't been selected.
+        for cardIndex, card in ipairs(shuffledDeck) do
+            -- print("Card_id: "..card.card_id)
+
+            if columnIndex == 4 then
+                rowIndex = rowIndex + 1
+                columnIndex = 0
+            end
+            xPosition = (columnIndex) * 64 * xCardOffset
+            yPosition = (rowIndex) * 98 * yCardOffset
+
+
+            love.graphics.setColor(1, 1, 1)
+            --If None selected and none right we display card_cover
+            if card.inPlay then
+                love.graphics.draw(deck.card_cover, xPosition, yPosition)
+            else
+                love.graphics.draw(deck.spriteSheet, deck.sprites[card.card_id], xPosition, yPosition)
+            end
+
+            columnIndex = columnIndex + 1
+            -- Temp printing text for development. Might use hover mouse for some hover effects eventually.
+            if hoverMouseX == columnIndex and hoverMouseY == rowIndex then
+                love.graphics.setColor(0, 0, 0)
+                love.graphics.print("mouse over: " .. card.task .. " with card_id: " .. card.card_id, 350, 0)
+                love.graphics.print('hoverMouseX: ' .. hoverMouseX .. ' hoverMouseY: ' .. hoverMouseY, 350, 15)
+                love.graphics.print('columnIndex: ' .. columnIndex .. ' rowIndex: ' .. rowIndex, 350, 35)
+            end
+        end
+
+        -- Temp printing text for development.
+        love.graphics.setColor(0, 0, 0)
+        if isCorrectSelection then
+            love.graphics.print("Correct Selection!", 350, 55)
         else
-            love.graphics.draw(deck.spriteSheet, deck.sprites[card.card_id], xPosition, yPosition)
+            love.graphics.print("Incorrect Selection.... :(", 350, 55)
         end
-        --If one or two cards are selected we display the match_card.
-        --If match cards are correct we keep displaying throughout the rest of the game
-        --If match cards are incorrect. We set a timer for 5 seconds and then display card_cover
-        -- love.graphics.draw(deck.spriteSheet, deck.sprites[card.card_id],  xPosition, yPosition)
-        columnIndex = columnIndex + 1
-
-        if hoverMouseX == columnIndex and hoverMouseY == rowIndex then
-            love.graphics.setColor(0, 0, 0)
-            love.graphics.print("mouse over: " .. card.task .. " with card_id: " .. card.card_id, 350, 0)
-            love.graphics.print('hoverMouseX: ' .. hoverMouseX .. ' hoverMouseY: ' .. hoverMouseY, 350, 15)
-            love.graphics.print('columnIndex: ' .. columnIndex .. ' rowIndex: ' .. rowIndex, 350, 35)
-        end
-
-
-        -- print("-----------------------")
-        -- print("card: "..card.task)
-        -- print("xPosition: "..xPosition)
-        -- print("yPosition: "..yPosition)
-        -- print("columnIndex: "..columnIndex)
-        -- print("rowIndex: "..rowIndex)
-        -- print("card_id: "..card.card_id)
     end
-    love.graphics.setColor(0, 0, 0)
-    if isCorrectSelection then
-        love.graphics.print("Correct Selection!", 350, 55)
-    else
-        love.graphics.print("Incorrect Selection.... :(", 350, 55)
-    end
-    -- love.graphics.setColor(0, 0, 0)
-    -- love.graphics.print('selected x: '..selectedX..' selected y: '..selectedY)
 end
 
 function love.update(dt)
@@ -129,17 +142,28 @@ function love.update(dt)
 end
 
 function love.mousereleased(mouseX, mouseY)
-    if timer == 0 then
-        selectedX = math.floor(mouseX / (spriteWidth * xCardOffset)) + 1
-        selectedY = math.floor(mouseY / (spriteHeight * yCardOffset))
-        local selectedVector = { selectedX, selectedY }
-        local selectedCard = getSelectedCard(selectedVector)
-        if selectedCard ~= nil and selectedCard.inPlay then
-            table.insert(selectedCards, selectedCard)
-            selectedCard.inPlay = false
-            print(selectedCard.task)
+    if gameState == 2 then
+        if timer == 0 then
+            selectedX = math.floor(mouseX / (spriteWidth * xCardOffset)) + 1
+            selectedY = math.floor(mouseY / (spriteHeight * yCardOffset))
+            local selectedVector = { selectedX, selectedY }
+            local selectedCard = getSelectedCard(selectedVector)
+            if selectedCard ~= nil and selectedCard.inPlay then
+                table.insert(selectedCards, selectedCard)
+                selectedCard.inPlay = false
+                print(selectedCard.task)
+            end
+            compareMatch()
         end
-        compareMatch()
+    end
+end
+
+function love.keyreleased(key)
+    print("key pressed: " .. key)
+    if key == "return" then
+        gameState = 2
+    elseif key == "escape" then
+        love.event.quit()
     end
 end
 
