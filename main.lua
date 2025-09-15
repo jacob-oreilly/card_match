@@ -47,12 +47,7 @@ function love.load()
             deck.spriteSheet:getWidth(), deck.spriteSheet:getHeight())
     end
 
-    -- Render 4 of each type from the sprite sheet and enter into a table with fields.
-    for card_id, task in ipairs({ 'keyboard', 'fly', 'asteroids', 'hockey', 'ghost' }) do
-        for index = 1, 4 do
-            table.insert(deck, { task = task, index = index, card_id = card_id })
-        end
-    end
+    createUnshuffledDeck()
 
     -- Shuffling the deck and insert into new deck.
     createShuffledDeck()
@@ -168,6 +163,7 @@ function love.update(dt)
 
     if cardsLeftInPlay == 0 and gameState == 2 then
         gameState = 1
+        createUnshuffledDeck()
         createShuffledDeck()
     end
 end
@@ -199,6 +195,14 @@ function love.keyreleased(key)
     end
 end
 
+function createUnshuffledDeck()
+ -- Render 4 of each type from the sprite sheet and enter into a table with fields.
+    for card_id, task in ipairs({ 'keyboard', 'fly', 'asteroids', 'hockey', 'ghost' }) do
+        for index = 1, 4 do
+            table.insert(deck, { task = task, index = index, card_id = card_id })
+        end
+    end
+end
 function createShuffledDeck()
     local rowCount = 0
     local colCount = 1
@@ -219,6 +223,8 @@ function createShuffledDeck()
     end
     -- Set number of cards in play to start with --
     cardsLeftInPlay = #shuffledDeck
+    print("Cards left in play: "..cardsLeftInPlay)
+    print("shuffledDeck: "..#shuffledDeck)
 end
 
 function compareMatch()

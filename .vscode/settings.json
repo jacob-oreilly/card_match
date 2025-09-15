@@ -30,6 +30,7 @@
         "newButton",
         "buttonIsHover",
         "cardsLeftInPlay",
-        "createShuffledDeck"
+        "createShuffledDeck",
+        "createUnshuffledDeck"
     ]
 }
