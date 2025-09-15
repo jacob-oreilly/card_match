@@ -1,12 +1,17 @@
+local buttons = {}
+local font = nil
+cardsLeftInPlay = 0
+
+
 function love.load()
     gameState = 1
 
-
     love.window.setMode(800, 600, { resizable = true, vsync = 0, minwidth = 400, minheight = 300 })
-    love.graphics.setBackgroundColor(1, 1, 1)
+    -- love.graphics.setBackgroundColor(1, 1, 1)
     screenWidth, screenHeight = love.graphics.getDimensions()
+    font = love.graphics.newFont(32)
 
-    cardDisplayDuration = 2
+    cardDisplayDuration = 1
     timer = 0
 
     deck = {}
@@ -21,6 +26,20 @@ function love.load()
     yCardOffset = 1.2
     isCorrectSelection = false
 
+    ---- SETUP MENU ----
+    table.insert(buttons, newButton(
+        "Start",
+        function()
+            gameState = 2
+            print("start")
+        end
+    ))
+    table.insert(buttons, newButton(
+        "Quit",
+        function()
+            love.event.quit(0)
+        end
+    ))
 
     -- add spritesheet as quad
     for i = 0, 4 do
@@ -36,22 +55,7 @@ function love.load()
     end
 
     -- Shuffling the deck and insert into new deck.
-    local rowCount = 0
-    local colCount = 1
-    for i = 1, #deck do
-        local randIndex = love.math.random(#deck)
-        table.insert(shuffledDeck,
-            { task = deck[randIndex].task, card_id = deck[randIndex].card_id, index = i, vecPos = { colCount, rowCount }, inPlay = true })
-        table.remove(deck, randIndex)
-
-        --sets column index back to 1 and increases the row index for the new row.
-        if colCount == 4 then
-            colCount = 1
-            rowCount = rowCount + 1
-        else
-            colCount = colCount + 1
-        end
-    end
+    createShuffledDeck()
 end
 
 function love.draw()
@@ -61,21 +65,42 @@ function love.draw()
     rowIndex = 0
 
     if gameState == 1 then
-        love.graphics.setBackgroundColor(95, 148, 228)
-        love.graphics.setColor(0, 0, 0)
-        local menuWidth = 450
-        local menuHeight = 300
-        local buttonWidth = 100
+        ---- DRAW MENU ----
+        local buttonWidth = screenWidth * (1/3)
         local buttonHeight = 65
-        local menuX = (screenWidth / 2) - (menuWidth / 2)
-        local menuY = (screenHeight / 2) - (menuHeight / 2)
-        local buttonX = (buttonWidth / 2) - (menuWidth / 2)
-        local buttonY = (buttonHeight / 2) - (menuHeight / 2)
+        local total_height = (buttonHeight + 16) * #buttons
+        local yIndex = 0
+        local mouseX = love.mouse.getX()
+        local mouseY = love.mouse.getY()
+        for i, button in ipairs(buttons) do
+            button.last = button.now
 
-        love.graphics.setColor(0, 0, 0)
-        love.graphics.rectangle("fill", menuX, menuY, menuWidth, menuHeight)
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight)
+            local buttonX = (screenWidth * 0.5) - (buttonWidth * 0.5)
+            local buttonY = (screenHeight * 0.5) - (total_height * 0.5) + yIndex
+
+            local color = {0.4, 0.4, 0.5, 1.0}
+
+            local buttonIsHover = mouseX > buttonX and mouseX < buttonX + buttonWidth and
+                        mouseY > buttonY and mouseY < buttonY + buttonHeight
+            if buttonIsHover then
+                color = {0.8, 0.8, 0.9, 1.0}
+            end
+
+            button.now = love.mouse.isDown(1)
+            if button.now and not button.last and buttonIsHover then
+                button.fn()
+            end
+            
+            love.graphics.setColor(unpack(color))
+            love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight)
+            yIndex = yIndex + (buttonHeight + 16)
+
+            love.graphics.setColor(0, 0, 0, 1)
+            love.graphics.setFont(font)
+            local textW = font:getWidth(button.label)
+            local textH = font:getHeight(button.label)
+            love.graphics.print(button.label, font, (screenWidth * 0.5) - textW * 0.5, buttonY + textH * 0.5)
+        end
     end
     if gameState == 2 then
         ---- DRAW GAME ----
@@ -129,6 +154,7 @@ function love.update(dt)
             selectedCards[1].inPlay = false
             selectedCards[2].inPlay = false
             selectedCards = {}
+            cardsLeftInPlay = cardsLeftInPlay - 2
         else
             timer = timer + dt
             if timer >= cardDisplayDuration then
@@ -138,6 +164,11 @@ function love.update(dt)
                 timer = 0
             end
         end
+    end
+
+    if cardsLeftInPlay == 0 and gameState == 2 then
+        gameState = 1
+        createShuffledDeck()
     end
 end
 
@@ -163,8 +194,31 @@ function love.keyreleased(key)
     if key == "return" then
         gameState = 2
     elseif key == "escape" then
-        love.event.quit()
+        gameState = 1
+        -- love.event.quit()
     end
+end
+
+function createShuffledDeck()
+    local rowCount = 0
+    local colCount = 1
+    shuffledDeck = {}
+    for i = 1, #deck do
+        local randIndex = love.math.random(#deck)
+        table.insert(shuffledDeck,
+            { task = deck[randIndex].task, card_id = deck[randIndex].card_id, index = i, vecPos = { colCount, rowCount }, inPlay = true })
+        table.remove(deck, randIndex)
+
+        --sets column index back to 1 and increases the row index for the new row.
+        if colCount == 4 then
+            colCount = 1
+            rowCount = rowCount + 1
+        else
+            colCount = colCount + 1
+        end
+    end
+    -- Set number of cards in play to start with --
+    cardsLeftInPlay = #shuffledDeck
 end
 
 function compareMatch()
@@ -195,4 +249,14 @@ function getSelectedCard(selectedVector)
             return card
         end
     end
+end
+
+function newButton(label, fn) 
+    print(label)
+    return {
+        label = label,
+        fn = fn,
+        now = false,
+        last = false
+    }
 end

@@ -26,6 +26,10 @@
         "wrongSelectedCards",
         "gameState",
         "screenWidth",
-        "screenHeight"
+        "screenHeight",
+        "newButton",
+        "buttonIsHover",
+        "cardsLeftInPlay",
+        "createShuffledDeck"
     ]
 }
