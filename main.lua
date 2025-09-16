@@ -7,6 +7,7 @@ function love.load()
     gameState = 1
 
     love.window.setMode(800, 600, { resizable = true, vsync = 0, minwidth = 400, minheight = 300 })
+    love.mouse.setGrabbed(true)
     -- love.graphics.setBackgroundColor(1, 1, 1)
     screenWidth, screenHeight = love.graphics.getDimensions()
     font = love.graphics.newFont(32)
@@ -26,6 +27,19 @@ function love.load()
     yCardOffset = 1.2
     isCorrectSelection = false
     fly = {}
+    fly.directionState = {
+        "left",
+        "right",
+        "up",
+        "down",
+        "up_L",
+        "up_R",
+        "down_L",
+        "down_R"
+    }
+    fly.directionStateSelected = ""
+    fly.directionChangeDuration = math.random(0,1)
+    fly.speed = 800
 
     ---- SETUP MENU ----
     table.insert(buttons, newButton(
@@ -165,9 +179,11 @@ function drawFlyTask()
 end
 
 function hasHitFly()
-    local flyIsHover = love.mouse.getX() > fly.x and love.mouse.getX() < fly.x + fly.width and
-                        love.mouse.getY() > fly.y and love.mouse.getY() < fly.y + fly.height
+    local mouseBuffer = 10
+    local flyIsHover = love.mouse.getX() > fly.x - mouseBuffer and love.mouse.getX() < fly.x + fly.width + mouseBuffer and
+                        love.mouse.getY() > fly.y - mouseBuffer and love.mouse.getY() < fly.y + fly.height + mouseBuffer
     if flyIsHover and love.mouse.isDown(1) then
+        timer = 0
         gameState = 2
     end
 end
@@ -200,6 +216,43 @@ function love.update(dt)
     end
 
     if gameState == 3 then
+        if fly.directionStateSelected == "" then
+            fly.directionStateSelected = fly.directionState[math.random(1, #fly.directionState)]
+        end
+
+        local screenLeft = 0
+        local screenRight = screenWidth - fly.width
+        local screenUp = 0
+        local screenDown = screenHeight - fly.height
+
+        local flyReachedEdge = fly.x <= screenLeft or fly.x >= screenRight or fly.y <= screenUp or fly.y >= screenDown
+        timer = timer + dt
+        if timer >= fly.directionChangeDuration or flyReachedEdge then
+            fly.directionStateSelected = fly.directionState[math.random(1, #fly.directionState)]
+            timer = 0
+            fly.directionChangeDuration = math.random(0, 1)
+        end
+        if fly.directionStateSelected == "left" then
+            fly.x = fly.x - fly.speed * dt
+        elseif fly.directionStateSelected == "right" then
+            fly.x = fly.x + fly.speed * dt
+        elseif fly.directionStateSelected == "up" then
+            fly.y = fly.y - fly.speed * dt
+        elseif fly.directionStateSelected == "down" then
+            fly.y = fly.y + fly.speed * dt
+        elseif fly.directionStateSelected == "up_L" then
+            fly.y = fly.y - fly.speed * dt
+            fly.x = fly.x - fly.speed * dt
+        elseif fly.directionStateSelected == "up_R" then
+            fly.y = fly.y + fly.speed * dt
+            fly.x = fly.x + fly.speed * dt
+        elseif fly.directionStateSelected == "down_L" then
+            fly.y = fly.y + fly.speed * dt
+            fly.x = fly.x - fly.speed * dt
+        elseif fly.directionStateSelected == "down_R" then
+            fly.y = fly.y - fly.speed * dt
+            fly.x = fly.x + fly.speed * dt
+        end
         hasHitFly()
     end
 end
