@@ -37,6 +37,7 @@
         "startTask",
         "drawFlyTask",
         "fly",
-        "hasHitFly"
+        "hasHitFly",
+        "sceneTransitionDuration"
     ]
 }
