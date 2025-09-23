@@ -1,7 +1,10 @@
+-- Add path to all other Scripts:
+package.path = "modules/?.lua;" .. package.path
+print("path: ", package.path)
 local buttons = {}
 local font = nil
 cardsLeftInPlay = 0
-
+local fly = require("modules/fly")
 
 function love.load()
     gameState = 1
@@ -27,21 +30,21 @@ function love.load()
     xCardOffset = 1.3
     yCardOffset = 1.2
     isCorrectSelection = false
-    fly = {}
-    fly.directionState = {
-        "left",
-        "right",
-        "up",
-        "down",
-        "up_L",
-        "up_R",
-        "down_L",
-        "down_R"
-    }
-    fly.directionStateSelected = ""
-    fly.directionChangeDuration = math.random(0, 1)
-    fly.speed = 800
-    fly.flyWasHit = false
+    -- fly = {}
+    -- fly.directionState = {
+    --     "left",
+    --     "right",
+    --     "up",
+    --     "down",
+    --     "up_L",
+    --     "up_R",
+    --     "down_L",
+    --     "down_R"
+    -- }
+    -- fly.directionStateSelected = ""
+    -- fly.directionChangeDuration = math.random(0, 1)
+    -- fly.speed = 800
+    -- fly.flyWasHit = false
 
     ---- SETUP MENU ----
     table.insert(buttons, newButton(
@@ -87,7 +90,7 @@ function love.draw()
         ---- DRAW GAME ----
         drawMatchingGame()
     elseif gameState == 3 then
-        drawFlyTask()
+        fly.drawFlyTask(font)
     end
 end
 
@@ -170,24 +173,24 @@ function drawMatchingGame()
     end
 end
 
-function drawFlyTask()
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.rectangle("fill", fly.x, fly.y, fly.width, fly.height)
-    love.graphics.setFont(font)
-    local text = "fly game"
-    local textW = font:getWidth(text)
-    local textH = font:getHeight(text)
-    love.graphics.print(text, font, (screenWidth * 0.5) - textW * 0.5, textH * 0.5)
-end
+-- function drawFlyTask()
+--     love.graphics.setColor(1, 1, 1, 1)
+--     love.graphics.rectangle("fill", fly.x, fly.y, fly.width, fly.height)
+--     love.graphics.setFont(font)
+--     local text = "fly game"
+--     local textW = font:getWidth(text)
+--     local textH = font:getHeight(text)
+--     love.graphics.print(text, font, (screenWidth * 0.5) - textW * 0.5, textH * 0.5)
+-- end
 
-function hasHitFly()
-    local mouseBuffer = 10
-    local flyIsHover = love.mouse.getX() > fly.x - mouseBuffer and love.mouse.getX() < fly.x + fly.width + mouseBuffer and
-        love.mouse.getY() > fly.y - mouseBuffer and love.mouse.getY() < fly.y + fly.height + mouseBuffer
-    if flyIsHover and love.mouse.isDown(1) then
-        fly.flyWasHit = true
-    end
-end
+-- function hasHitFly()
+--     local mouseBuffer = 10
+--     local flyIsHover = love.mouse.getX() > fly.x - mouseBuffer and love.mouse.getX() < fly.x + fly.width + mouseBuffer and
+--         love.mouse.getY() > fly.y - mouseBuffer and love.mouse.getY() < fly.y + fly.height + mouseBuffer
+--     if flyIsHover and love.mouse.isDown(1) then
+--         fly.flyWasHit = true
+--     end
+-- end
 
 function love.update(dt)
     hoverMouseX = math.floor(love.mouse.getX() / (spriteWidth * xCardOffset)) + 1
@@ -256,7 +259,7 @@ function love.update(dt)
                 fly.y = fly.y - fly.speed * dt
                 fly.x = fly.x + fly.speed * dt
             end
-            hasHitFly()
+            fly.hasHitFly()
         else
              timer = timer + dt
              if timer >= sceneTransitionDuration then
