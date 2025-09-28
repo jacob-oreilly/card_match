@@ -35,6 +35,56 @@ function fly.hasHitFly()
     end
 end
 
+function fly.update(dt)
+    if not fly.flyWasHit then
+        if fly.directionStateSelected == "" then
+            fly.directionStateSelected = fly.directionState[math.random(1, #fly.directionState)]
+        end
+
+        local screenLeft = 0
+        local screenRight = screenWidth - fly.width
+        local screenUp = 0
+        local screenDown = screenHeight - fly.height
+
+        local flyReachedEdge = fly.x <= screenLeft or fly.x >= screenRight or fly.y <= screenUp or
+            fly.y >= screenDown
+        timer = timer + dt
+        if timer >= fly.directionChangeDuration or flyReachedEdge then
+            fly.directionStateSelected = fly.directionState[math.random(1, #fly.directionState)]
+            timer = 0
+            fly.directionChangeDuration = math.random(0, 1)
+        end
+        if fly.directionStateSelected == "left" then
+            fly.x = fly.x - fly.speed * dt
+        elseif fly.directionStateSelected == "right" then
+            fly.x = fly.x + fly.speed * dt
+        elseif fly.directionStateSelected == "up" then
+            fly.y = fly.y - fly.speed * dt
+        elseif fly.directionStateSelected == "down" then
+            fly.y = fly.y + fly.speed * dt
+        elseif fly.directionStateSelected == "up_L" then
+            fly.y = fly.y - fly.speed * dt
+            fly.x = fly.x - fly.speed * dt
+        elseif fly.directionStateSelected == "up_R" then
+            fly.y = fly.y + fly.speed * dt
+            fly.x = fly.x + fly.speed * dt
+        elseif fly.directionStateSelected == "down_L" then
+            fly.y = fly.y + fly.speed * dt
+            fly.x = fly.x - fly.speed * dt
+        elseif fly.directionStateSelected == "down_R" then
+            fly.y = fly.y - fly.speed * dt
+            fly.x = fly.x + fly.speed * dt
+        end
+        fly.hasHitFly()
+    else
+        timer = timer + dt
+        if timer >= sceneTransitionDuration then
+            timer = 0
+            fly.flyWasHit = false
+            gameState = 2
+        end
+    end
+    return fly.flyWasHit
+end
+
 return fly
-
-
