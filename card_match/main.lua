@@ -3,21 +3,20 @@ package.path = "modules/?.lua;" .. package.path
 local fly = require("modules/fly")
 local menu = require("modules/menu")
 local matchGame = require("modules/matchGame")
-print("path: ", package.path)
+local asteroids = require("modules/asteroids")
 -- local buttons = {}
 local font = nil
 cardsLeftInPlay = 0
 
 
 function love.load()
-    gameState = 1
+    gameState = 4
 
     love.window.setMode(800, 600, { resizable = true, vsync = 0, minwidth = 400, minheight = 300 })
     love.mouse.setGrabbed(true)
     -- love.graphics.setBackgroundColor(1, 1, 1)
     screenWidth, screenHeight = love.graphics.getDimensions()
     font = love.graphics.newFont(32)
-
     
     sceneTransitionDuration = 1
     timer = 0
@@ -38,13 +37,13 @@ function love.draw()
     rowIndex = 0
 
     if gameState == 1 then
-        ---- DRAW MENU ----
         menu.drawMenu(font)
     elseif gameState == 2 then
-        ---- DRAW GAME ----
         matchGame.drawMatchingGame()
     elseif gameState == 3 then
         fly.drawFlyTask(font)
+    elseif gameState == 4 then
+        asteroids.drawAsteroidsTask(font)
     end
 end
 
@@ -122,6 +121,10 @@ function startTask()
         fly.width = 10
         fly.height = 10
         gameState = 3
+    elseif matchGame.selectedCards[1].task == "asteroids" then
+        asteroids.x = screenWidth * 0.5
+        asteroids.y = screenHeight * 0.7
+        asteroids.vertices = {100,100, 200,100, 150,200}
     end
 end
 
