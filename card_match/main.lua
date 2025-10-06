@@ -6,6 +6,7 @@ local matchGame = require("modules/matchGame")
 local asteroids = require("modules/asteroids")
 -- local buttons = {}
 local font = nil
+local shipVertices = { 50, 50, 100, 50, 100, 100 }
 cardsLeftInPlay = 0
 
 
@@ -43,7 +44,7 @@ function love.draw()
     elseif gameState == 3 then
         fly.drawFlyTask(font)
     elseif gameState == 4 then
-        asteroids.drawAsteroidsTask(font)
+        asteroids.drawAsteroidsTask(font, shipVertices)
     end
 end
 
@@ -122,9 +123,7 @@ function startTask()
         fly.height = 10
         gameState = 3
     elseif matchGame.selectedCards[1].task == "asteroids" then
-        asteroids.x = screenWidth * 0.5
-        asteroids.y = screenHeight * 0.7
-        asteroids.vertices = {100,100, 200,100, 150,200}
+       asteroids.startTask()
     end
 end
 

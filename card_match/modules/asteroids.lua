@@ -1,11 +1,17 @@
 local asteroids = {}
 
+asteroids.vertices = {}
+asteroids.x = 0
+asteroids.y = 0
 
+function asteroids.startTask()
+    asteroids.x = screenWidth * 0.5
+    asteroids.y = screenHeight * 0.7
+end
 
-function asteroids.drawAsteroidsTask(font)
+function asteroids.drawAsteroidsTask(font, shipVertices)
     love.graphics.setColor(1, 1, 1, 1)
-    -- love.graphics.polygon(mode, -length/2, -width /2, -length/2, width /2, length/2, 0)
-    love.graphics.polygon("fill", 100,100, 200,100, 150,200)
+    love.graphics.polygon("fill", shipVertices)
     love.graphics.setFont(font)
     local text = "asteroids Game"
     local textW = font:getWidth(text)
